@@ -16,7 +16,7 @@ def random_sequence (sequence_length):
     sequence = ""
     vowels = ['a', 'e', 'i', 'o', 'u', 'y']
     consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r',\
-                  's', 't', 'v', 'w', 'x', 'z']
+                  's', 'i', 'v', 'w', 'x', 'z']
     length = 0 #tracks length of sequence
     space = 0 #used to prevent two spaces in a row
     word_type = 0 #increases chances of vowels after consonants and vice versa
@@ -45,61 +45,52 @@ def random_sequence (sequence_length):
             
     return sequence
 
-#Uses random_sequence to generate random "words" and splits them into 2 word chunks. 
-#Chunks are kept if at least one word in the chunk is "correct".
-#s_length specifies how long the total input sequence is
-#o_length specifies criteria for how long a word must be to be correct excluding I and a.
+# Uses random_sequence to generate random "words" and splits them into 2 word chunks. 
+# Chunks are kept if at least one word in the chunk is "correct".
+# s_length specifies how long the total input sequence is
+# o_length specifies criteria for how long a word must be to be correct excluding I and a.
 def selection (s_length, o_length):
-    span = 1
-    seq = random_sequence(s_length)
-    check = seq.split()
-    check = [" ".join(check[i:i+span]) for i in range(0, len(check), span)]
+    chunk_length = 1
+    input_sequence = random_sequence(s_length)
+    check = input_sequence.split()
+    # below is slightly unreadable: chains each chunk_length of words
+    check = [" ".join(check[i:i+chunk_length]) for i in range(0, len(check), chunk_length)]
     output = ""
     
     for i in check:
         piece = i.split()
-        print(piece)
-        group_length = len(piece)
-        if group_length == 2: 
-            if d.check(piece[0]) == True or d.check(piece[1]) == True:
-                if len(piece[0]) > o_length and len(piece[1]) > o_length and i != " " \
-                or i == "i" or i == "a":
-                    output = output + " " + piece[0] + " " + piece[1]
-        elif group_length == 1:
-            if d.check(piece[0]) == True:
-                if len(piece[0]) > o_length\
-                and piece[0] != " " or i == "i" or i == "a":
-                    output = output + " " + piece[0] 
+        flag = True
+        temp = ""
+        for word in piece:
+            if d.check(word) == True:
+                flag &= len(word) > o_length
+                temp += " " + word
+            else:
+                flag = False
+        if flag:
+            output += temp
     return output
 
-#Part of a class of "endonucleases" that cuts out certain (extraneous) sequences from Species
+# Part of a class of "endonucleases" that cuts out certain (extraneous) sequences from Species
+# Dictionary is a species (species_tag : DNA) and prune sequence is a string with words seperated by spaces
 def endonuclease(prune_sequence, dictionary):
-    for component in prune_sequence.split():
-        for k, v in dictionary.items():
-            output = ""
-            for i in v.split():
-                if i != component:
-                    output = output + " " + i
-            dictionary[k] = output
+    for k in dictionary.keys():
+        for component in prune_sequence.split():
+            dictionary[k].replace(" " + component + " ", " ")
     return dictionary
         
 
 Species = {}
 
-letter_code = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',\
-               'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+letter_code = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
     
-#Creates primordial species A-Z, 
+#Creates primordial species A-Z
 def create_primordial():
     Species1 = {}
-    a = 0
-    t = 0
-    while t < (26):
+    for i in range(26):
         DNA = selection(1000, 1)
-        species_tag = "/1/" + str(letter_code[a])
+        species_tag = "/1/" + str(letter_code[i])
         Species1.update({species_tag: DNA})
-        a += 1
-        t += 1
     return Species1
 
 #function that simulates a polymerase class enzyme. Makes new copies of "DNA"
@@ -173,4 +164,3 @@ replicated = replication(Prune)
 replicated = replication(replicated)
 Prune = endonuclease("i a", replicated)
 [print(key, ":", value) for key, value in replicated.items()]
-
