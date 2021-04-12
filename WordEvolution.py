@@ -36,6 +36,7 @@ def random_sequence (sequence_length):
             
     return ''.join(sequence)
 
+# chooses from dictionary given sum and values as weights
 def choose (dictionary, sum):
     running_val = r.random() * sum
     for k, v in dictionary.items():
@@ -70,8 +71,8 @@ def selection (s_length, o_length):
                     output = output + " " + piece[0] 
     return output
 
-#Part of a class of "endonucleases" that cuts out certain (extraneous) sequences from Species
-def endonuclease(prune_sequence, dictionary):
+# Part of a class of "endonucleases" that cuts out certain (extraneous) sequences from Species
+def endonuclease (prune_sequence, dictionary):
     for component in prune_sequence.split():
         for k, v in dictionary.items():
             output = ""
