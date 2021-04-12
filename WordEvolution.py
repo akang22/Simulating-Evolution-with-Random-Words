@@ -10,39 +10,39 @@ import random as r
 
 d = enchant.Dict("en_US")
 
-#generates a random sequence of words with certain rules
+# generates a random sequence of words with rules to model real words
 def random_sequence (sequence_length):
-    sequence = ""
-    vowels = ['a', 'e', 'i', 'o', 'u', 'y']
-    consonants = ['b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r',\
-                  's', 't', 'v', 'x', 'z']
-    length = 0 #tracks length of sequence
-    space = 0 #used to prevent two spaces in a row
-    word_type = 0 #increases chances of vowels after consonants and vice versa
-    consonant_frequency = 77
-    space_frequency = 15
-    
-    while length < sequence_length:
-        n = r.randint(0,100)
-        word_type_gen = r.randint (0,10)
-        if n > space_frequency or space == 1: #n is the rng to decide space frequency
-            m = r.randint(0,100) #m is rng to decide consonant vs vowel
-            if m < consonant_frequency and word_type == 1 or word_type_gen > 8:
-                sequence = sequence + r.choice(consonants)
-                word_type = 0 #if consonant is added, word_type = 0
+    sequence = [None] * sequence_length
+    previous_char_type = 0 # 0: space, 1: vowel, 2: consonant
+
+    CONSONANTS = { 'b': 0.02, 'c': 0.04, 'd': 0.038, 'f': 0.014, 'g': 0.03, 'h': 0.023, 'j': 0.0021, 'k': 0.0097, 'l': 0.053, 'm': 0.027, 
+    'n': 0.072, 'p': 0.028, 'q': 0.0019, 'r': 0.073, 's': 0.087, 't': 0.067, 'v': 0.01, 'w': 0.0091, 'x': 0.0027, 'z': 0.0044 }
+    ALPHABET = dict(CONSONANTS, **{ 'a': 0.078, 'e': 0.11, 'i': 0.086, 'o': 0.061, 'u': 0.033, 'y': 0.016 })
+
+    SPACE_PC = 0.15
+    CONSONANT_FOLLOWS_VOWEL_PC = 0.77
+
+    for i in range(sequence_length):
+        if previous_char_type == 0 or r.random() > SPACE_PC:
+            if r.random() < CONSONANT_FOLLOWS_VOWEL_PC and previous_char_type == 1:
+                sequence[i] = choose(CONSONANTS, 0.6262)
+                previous_char_type = 2
             else:
-                sequence = sequence + r.choice(vowels)
-                word_type = 1 #if vowel is added, word_type = 1
-                
-            length += 1
-            space = 0
+                sequence[i] = choose(ALPHABET, 1.0102)
+                previous_char_type = 1
+        else:
+            sequence[i] = " "
+            previous_char_type = 0
             
-        elif space != 1:
-            sequence = sequence + " "
-            length += 1
-            space = 1
-            
-    return sequence
+    return ''.join(sequence)
+
+def choose (dictionary, sum):
+    running_val = r.random() * sum
+    for k, v in dictionary.items():
+        running_val -= v
+        if 0 > running_val:
+            return k
+    return " "
 
 #Uses random_sequence to generate random "words" and splits them into 2 word chunks. 
 #Chunks are kept if at least one word in the chunk is "correct".
